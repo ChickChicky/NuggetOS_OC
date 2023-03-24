@@ -1,0 +1,12 @@
+sythet control flow:
+
+   init.lua      ->  boot.lua  ->  OS.lua
+(entry point)        
+
+               error
+                 ->  alternate blue screen mode
+
+             boot.lua ended 
+                 or          
+          blue screen ended
+                 ->  yielding state
