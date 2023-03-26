@@ -1,3 +1,4 @@
+---@class color
 color = {}
 
 function color.from(...)

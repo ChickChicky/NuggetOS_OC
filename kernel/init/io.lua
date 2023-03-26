@@ -26,20 +26,35 @@ end
 ---@class ansi
 local ansi = {
     colors = {
+        -- normal colors (FG/BG)
         ['30'] = 0x000000, ['40'] = 0x000000,
-        ['31'] = 0xFF0000, ['41'] = 0xFF0000,
-        ['32'] = 0x00FF00, ['42'] = 0x00FF00,
-        ['33'] = 0xFFFF00, ['43'] = 0xFFFF00,
-        ['34'] = 0x0000FF, ['44'] = 0x0000FF,
-        ['35'] = 0xFF00FF, ['45'] = 0xFF00FF,
-        ['36'] = 0x00FFFF, ['46'] = 0x00FFFF,
-        ['37'] = 0xFFFFFF, ['47'] = 0xFFFFFF
+        ['31'] = 12914463,  ['41'] = 12914463,
+        ['32'] = 1286414,   ['42'] = 1286414,
+        ['33'] = 12688384,    ['43'] = 12688384,
+        ['34'] = 14300928, ['44'] = 14300928,
+        ['35'] = 8918936,  ['45'] = 8918936,
+        ['36'] = 3839709, ['46'] = 3839709,
+        ['37'] = 13421772, ['47'] = 13421772,
+
+        -- bright colors (FG/BG)
+        ['90'] = 7763574,  ['100'] = 7763574,
+        ['91'] = 15157334,  ['101'] = 15157334,
+        ['92'] = 1492492,   ['102'] = 1492492,
+        ['93'] = 16380325, ['103'] = 16380325,
+        ['94'] = 3897599, ['104'] = 3897599,
+        ['95'] = 11796638, ['105'] = 11796638,
+        ['96'] = 6411990, ['106'] = 6411990,
+        ['97'] = 15921906, ['107'] = 15921906,
     },
     isBackground = function(color)
         if (
             (
                 39 < tonumber(color) and
                 48 > tonumber(color)
+            ) or
+            (
+                99 < tonumber(color) and
+                108 > tonumber(color)
             )
         ) then
             return true
@@ -51,6 +66,10 @@ local ansi = {
             (
                 29 < tonumber(color) and
                 38 > tonumber(color)
+            ) or
+            (
+                89 < tonumber(color) and
+                98 > tonumber(color)
             )
         )  then
             return true
@@ -205,13 +224,15 @@ function io.stdin:read(...)
     local mod = 0
     while true do
         local ev = {computer.pullSignal(0.1)}
-        local evt,comp,chr,code,usr = table.unpack(ev)
-        if evt == 'key_down' then
+        if ev[1] == 'key_down' then
+            local evt,comp,chr,code,usr = table.unpack(ev)
             if code == 14 then
                 local ov = #v;
                 v = v:sub(1,math.max(0,c-2)) .. v:sub(c)
                 c = c+#v-ov
                 mod = 3
+            elseif code == 211 then
+                v = v:sub(1,c-1) .. v:sub(c+1)
             elseif code == 203 then
                 c = math.max(1,c-1)
                 mod = 3
@@ -232,7 +253,12 @@ function io.stdin:read(...)
                 c = c+1
                 mod = 3
             end
-        elseif evt ~= nil then
+        elseif ev[1] == 'clipboard' then
+            local evt,comp,content,usr = table.unpack(ev)
+            v = v:sub(1,c-1) .. content .. v:sub(c)
+            c = c+#content
+            mod = 3
+        elseif ev[1] ~= nil then
             --computer.pushSignal(table.unpack(ev))
         end
         _x = ox
@@ -258,6 +284,16 @@ end
 function io.read(...)
     return io.stdin:read(...)
 end
+
+function io.getch()
+    while true do
+        local evt,comp,chr,code,usr = computer.pullSignal()
+        if evt == 'key_down' and chr ~= 0 then
+            return utf8.char(chr)
+        end
+    end
+end
+
 
 function print(...)
     local args = table.map({...},tostring)

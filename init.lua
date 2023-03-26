@@ -56,9 +56,7 @@ function loadfile(path)
     return load(buffer,path,'bt',_G)
 end
 
---[[
-    Used to 
-]]
+
 function dofile(path,...)
     local fn,err = loadfile(path)
     if err then
@@ -175,7 +173,7 @@ do
         for i,filename in pairs(disk.list(path)) do
             if type(i) == 'number' then
                 if not disk.isDirectory(path..filename) then
-                    xpcall(
+                    if not xpcall(
                         function()
                             dofile(path..filename)
                             status('[INIT]',path..filename)
@@ -184,7 +182,9 @@ do
                         function(e)
                             estatus('[INIT]',path..filename,' ',e)
                         end
-                    )
+                    ) then
+                        while true do coroutine.yield() end
+                    end
                 end
             end
         end
@@ -273,7 +273,7 @@ setmetatable(kernel,{
         end
     end,
     __newindex = function(t,name,value)
-
+        error('Trying to overwrite ')
     end
 })
 
